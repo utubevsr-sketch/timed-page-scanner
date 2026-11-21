@@ -28,7 +28,7 @@ let cameraReady = false;
 let cameraLens = "";
 let cameraRequest = 0;
 let run = null;
-let frameRequest = null;
+let captureTimer = null;
 let countdown = 0;
 let saving = false;
 let retake = null;
@@ -114,11 +114,8 @@ function discardArchive() {
 function stopCapture() {
   run = null;
   countdown = 0;
-  if (frameRequest !== null) {
-    if (camera.cancelVideoFrameCallback) camera.cancelVideoFrameCallback(frameRequest);
-    else cancelAnimationFrame(frameRequest);
-    frameRequest = null;
-  }
+  clearTimeout(captureTimer);
+  captureTimer = null;
   if (wakeLock) {
     void wakeLock.release().catch(() => {});
     wakeLock = null;
@@ -235,28 +232,35 @@ function beginRun() {
       else return lock.release();
     }).catch(() => {});
   }
-  requestFrame();
+  scheduleCapture();
 }
 
-function requestFrame() {
-  if (!run || frameRequest !== null) return;
-  frameRequest = camera.requestVideoFrameCallback ? camera.requestVideoFrameCallback(onFrame) : requestAnimationFrame(onFrame);
+function scheduleCapture() {
+  if (!run || captureTimer !== null) return;
+  const remaining = Math.max(0, run.deadline - performance.now());
+  const delay = countdown ? Math.min(1000, remaining) : remaining;
+  captureTimer = setTimeout(captureWhenDue, Math.ceil(delay));
 }
 
-function onFrame(now) {
-  frameRequest = null;
+function captureWhenDue() {
+  captureTimer = null;
   const active = run;
   if (!active || document.hidden) return;
-  const remaining = active.deadline - now;
-  if (remaining > 0 || camera.readyState < 2) {
+  // Use the same clock for the deadline and the check, regardless of how the camera reports frame time.
+  const remaining = active.deadline - performance.now();
+  if (remaining > 0) {
     if (countdown) {
-      const seconds = Math.ceil(Math.max(0, remaining) / 1000);
+      const seconds = Math.ceil(remaining / 1000);
       if (seconds !== countdown) {
         countdown = seconds;
         render();
       }
     }
-    requestFrame();
+    scheduleCapture();
+    return;
+  }
+  if (camera.readyState < 2 || camera.paused) {
+    captureTimer = setTimeout(captureWhenDue, 100);
     return;
   }
   countdown = 0;
@@ -298,7 +302,7 @@ async function saveFrame(active) {
   } finally {
     saving = false;
     render();
-    requestFrame();
+    scheduleCapture();
   }
 }
 
