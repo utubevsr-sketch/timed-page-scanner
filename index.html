@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#10191c">
+  <meta name="description" content="Scan pages hands-free and save small, numbered JPEGs in one ZIP.">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'none'; img-src 'self' blob:; media-src 'self' blob:; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <title>Timed Page Scanner</title>
+  <link rel="stylesheet" href="./scanner.css">
+  <script type="module" src="./scanner.js"></script>
+</head>
+<body>
+  <main>
+    <header class="heading">
+      <span class="app-icon" aria-hidden="true"><i></i></span>
+      <h1>Timed Page Scanner</h1>
+    </header>
+
+    <section class="scanner" aria-label="Document scanner">
+      <div class="overview">
+        <div class="page-count"><strong id="count">0</strong><span id="goal-label"> / 200 pages</span></div>
+        <div class="scan-state">
+          <b id="state" role="status">Loading scanner</b>
+          <span id="size">0 KB stored</span>
+        </div>
+      </div>
+      <progress id="progress" max="200" value="0" aria-label="Pages captured"></progress>
+
+      <div class="viewfinder" id="viewfinder">
+        <video id="camera" aria-label="Live camera preview" autoplay muted playsinline hidden></video>
+        <div class="empty-camera" id="camera-off">
+          <span class="paper-icon" aria-hidden="true"><i></i></span>
+          <b>Camera preview</b>
+          <p>Set your phone above the page.</p>
+        </div>
+        <div class="guide" id="guide" aria-hidden="true" hidden><i></i><i></i><i></i><i></i></div>
+        <div class="countdown" id="countdown" aria-hidden="true" hidden></div>
+      </div>
+
+      <div class="controls">
+        <div class="settings">
+          <label>
+            <span>Capture interval</span>
+            <span class="select-wrap"><select id="interval">
+              <option value="1000">1 second</option>
+              <option value="2000">2 seconds</option>
+              <option value="3000">3 seconds</option>
+              <option value="5000">5 seconds</option>
+            </select></span>
+          </label>
+          <label>
+            <span>Page target</span>
+            <input id="goal" type="number" inputmode="numeric" required value="200" min="1" max="999" step="1">
+          </label>
+        </div>
+        <button id="capture" class="primary" disabled>Enable camera</button>
+        <div class="capture-options">
+          <label class="sound"><input id="sound" type="checkbox" checked> Capture tick</label>
+          <button id="camera-stop" class="text-button" hidden>Turn camera off</button>
+          <button id="cancel-retake" class="text-button" hidden>Cancel retake</button>
+        </div>
+        <p id="help" class="help">Frame the whole page. Turn it after each tick.</p>
+        <p id="notice" class="notice" role="status" hidden></p>
+      </div>
+    </section>
+
+    <section class="saved" aria-labelledby="saved-heading">
+      <div class="saved-intro">
+        <h2 id="saved-heading">Saved photos</h2>
+        <p>Small, numbered JPEGs stay in this browser until you export.</p>
+      </div>
+      <div class="file-actions">
+        <button id="review" disabled>Review photos</button>
+        <button id="prepare" disabled>Prepare ZIP</button>
+        <a id="save" class="button primary" hidden>Save ZIP</a>
+        <button id="share" hidden>Share ZIP</button>
+      </div>
+      <button id="reset" class="text-button danger" disabled>Clear saved photos</button>
+    </section>
+
+    <noscript>This scanner needs JavaScript to use the camera and save your photos.</noscript>
+  </main>
+
+  <dialog id="review-dialog" aria-labelledby="review-title">
+    <div class="dialog-inner">
+      <div class="dialog-heading"><h2 id="review-title">Saved photo</h2><button id="review-close" autofocus>Close</button></div>
+      <div class="photo"><img id="review-image" alt="" hidden></div>
+      <div class="file-actions review-actions">
+        <button id="previous">Previous</button>
+        <button id="next">Next</button>
+        <button id="retake" class="primary">Retake this page</button>
+      </div>
+    </div>
+  </dialog>
+
+  <dialog id="clear-dialog" aria-labelledby="clear-title">
+    <div class="dialog-inner">
+      <h2 id="clear-title">Clear saved photos?</h2>
+      <p>Save the ZIP first if you want a copy. This deletes the photos stored in this browser.</p>
+      <div class="file-actions">
+        <button id="keep" autofocus>Keep photos</button>
+        <button id="delete" class="danger-button">Clear photos</button>
+      </div>
+    </div>
+  </dialog>
+</body>
+</html>
