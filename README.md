@@ -1,6 +1,6 @@
 # Timed Page Scanner
 
-[Open the scanner](https://timed-page-scanner.vattsi.chatgpt.site) in Safari or Chrome on your phone. Sign in with the owner’s ChatGPT account when prompted.
+[Open the scanner](https://utubevsr-sketch.github.io/timed-page-scanner/) in Safari or Chrome on your phone.
 
 1. Tap **Enable camera** and frame the page. Tap **Start capture** to begin a three-second countdown.
 2. Turn the page after each tick. The default interval is one second and the target is 200 photos. Select 0.5 seconds to scan faster or a longer interval if pages blur.
