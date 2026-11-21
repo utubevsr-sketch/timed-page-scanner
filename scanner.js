@@ -1,5 +1,5 @@
 import { appendPage, clearDraft, DraftChangedError, getDraft, getPage, openStorage, replacePage } from "./pages.js";
-import { followingDeadline, jpegFromCamera, openPageCamera, pageCrop } from "./capture.js?v=2";
+import { captureArea, jpegFromCamera, openPageCamera } from "./capture.js?v=3";
 import { makeZip } from "./zip.js";
 
 const byId = (id) => document.getElementById(id);
@@ -11,6 +11,7 @@ const stopButton = byId("camera-stop");
 const intervalInput = byId("interval");
 const goalInput = byId("goal");
 const soundInput = byId("sound");
+const fullFrameInput = byId("full-frame");
 const saveLink = byId("save");
 const shareButton = byId("share");
 const reviewDialog = byId("review-dialog");
@@ -53,8 +54,9 @@ function render() {
   const goal = goalInput.valueAsNumber;
   const finished = validGoal && draft.count >= goal;
   const locked = !database || Boolean(busy || run || saving);
-  const state = busy || (!database ? "Storage unavailable" : countdown ? `Starting in ${countdown}` : run ? "Capturing" : saving ? "Saving photo" :
-    finished && !retake ? "Target reached" : cameraReady ? (draft.count ? "Paused" : "Camera ready") : "Camera off");
+  const runStatus = run?.retake ? "Retaking photo" : run ? `Capturing · ${run.interval / 1000}s` : "";
+  const state = busy || (!database ? "Storage unavailable" : countdown ? `Starting in ${countdown}` : runStatus || (saving ? "Saving photo" :
+    finished && !retake ? "Target reached" : cameraReady ? (draft.count ? "Paused" : "Camera ready") : "Camera off"));
   const status = byId("state");
   if (status.textContent !== state) status.textContent = state;
   byId("count").textContent = draft.count;
@@ -74,13 +76,14 @@ function render() {
   guide.hidden = !cameraReady;
   intervalInput.disabled = locked;
   goalInput.disabled = locked;
+  fullFrameInput.disabled = locked;
   captureButton.disabled = !database || Boolean(busy) || (!run && (saving || (!retake && (!validGoal || finished))));
   captureButton.textContent = run ? "Pause" : finished && !retake ? "Complete" : !stream ? "Enable camera" :
     retake ? `Retake page ${retake}` : draft.count ? "Resume capture" : "Start capture";
   stopButton.hidden = !cameraReady || Boolean(run || saving || busy);
   byId("cancel-retake").hidden = !retake || locked;
   byId("help").textContent = retake ? `Frame page ${retake}. The new photo will replace it.` :
-    run ? "Turn the page after each capture. Keep this tab open." : "Frame the whole page. Turn it after each tick.";
+    run ? "Turn the page after each capture. Keep this tab open." : "Keep all four page corners inside the guide.";
   const feedback = byId("notice");
   feedback.textContent = notice;
   feedback.hidden = !notice;
@@ -95,7 +98,7 @@ function render() {
 
 function applyGuide() {
   if (!camera.videoWidth || !camera.videoHeight) return;
-  const crop = pageCrop(camera.videoWidth, camera.videoHeight);
+  const crop = captureArea(camera.videoWidth, camera.videoHeight, fullFrameInput.checked);
   const scale = Math.min(finder.clientWidth / camera.videoWidth, finder.clientHeight / camera.videoHeight);
   guide.style.width = `${crop.width * scale}px`;
   guide.style.height = `${crop.height * scale}px`;
@@ -220,6 +223,7 @@ function beginRun() {
     deadline: performance.now() + 3000,
     interval: Number(intervalInput.value),
     target: goalInput.valueAsNumber,
+    fullFrame: fullFrameInput.checked,
     retake,
   };
   run = active;
@@ -256,7 +260,6 @@ function onFrame(now) {
     return;
   }
   countdown = 0;
-  active.deadline = followingDeadline(active.deadline, now, active.interval);
   void saveFrame(active);
 }
 
@@ -279,12 +282,14 @@ async function saveFrame(active) {
   saving = true;
   render();
   try {
-    const photo = await jpegFromCamera(camera, canvas, context);
+    const photo = await jpegFromCamera(camera, canvas, context, active.fullFrame);
     draft = active.retake ? await replacePage(database, draft.revision, active.retake, photo) :
       await appendPage(database, draft.revision, photo);
     discardArchive();
     if (active.retake) retake = null;
     if (!document.hidden) signalSaved();
+    // Give the full interval for turning the page after the saved-photo cue.
+    active.deadline = performance.now() + active.interval;
     if (!active.retake && draft.count >= active.target) turnCameraOff();
     else if (!run || active.retake) stopCapture();
   } catch (error) {
@@ -386,7 +391,12 @@ async function deletePhotos() {
 function saveSettings() {
   if (!validTarget()) return;
   try {
-    localStorage.setItem("scanner-settings", JSON.stringify({ goal: goalInput.value, interval: intervalInput.value, sound: soundInput.checked }));
+    localStorage.setItem("scanner-settings", JSON.stringify({
+      goal: goalInput.value,
+      interval: intervalInput.value,
+      sound: soundInput.checked,
+      fullFrame: fullFrameInput.checked,
+    }));
   } catch {
     // Running a scan only requires access to IndexedDB.
   }
@@ -398,6 +408,7 @@ async function initialize() {
     if (saved && Number.isInteger(Number(saved.goal)) && saved.goal >= 1 && saved.goal <= 999) goalInput.value = saved.goal;
     if (saved && [...intervalInput.options].some((option) => option.value === saved.interval)) intervalInput.value = saved.interval;
     if (typeof saved?.sound === "boolean") soundInput.checked = saved.sound;
+    if (typeof saved?.fullFrame === "boolean") fullFrameInput.checked = saved.fullFrame;
   } catch {
     // Defaults also work in browsers that restrict preference storage.
   }
@@ -427,7 +438,8 @@ captureButton.addEventListener("click", () => {
 stopButton.addEventListener("click", () => turnCameraOff());
 byId("cancel-retake").addEventListener("click", () => { retake = null; render(); });
 goalInput.addEventListener("input", render);
-for (const input of [goalInput, intervalInput, soundInput]) input.addEventListener("change", saveSettings);
+for (const input of [goalInput, intervalInput, soundInput, fullFrameInput]) input.addEventListener("change", saveSettings);
+fullFrameInput.addEventListener("change", applyGuide);
 camera.addEventListener("resize", applyGuide);
 new ResizeObserver(applyGuide).observe(finder);
 document.addEventListener("visibilitychange", () => {

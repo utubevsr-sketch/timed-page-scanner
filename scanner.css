@@ -17,27 +17,27 @@
 *, *::before, *::after { box-sizing: border-box; }
 [hidden] { display: none !important; }
 body { margin: 0; }
-main { max-width: 37rem; margin: 0 auto; padding: max(0.75rem, env(safe-area-inset-top)) 0.875rem max(1.5rem, env(safe-area-inset-bottom)); }
+main { max-width: 42rem; margin: 0 auto; padding: max(0.55rem, env(safe-area-inset-top)) 0.5rem max(1.5rem, env(safe-area-inset-bottom)); }
 h1, h2, p { margin: 0; }
-h1 { font-size: clamp(1.35rem, 5vw, 1.7rem); letter-spacing: -0.035em; }
+h1 { font-size: 1.1rem; letter-spacing: -0.025em; }
 h2 { font-size: 1.125rem; letter-spacing: -0.02em; }
-.heading { display: flex; align-items: center; gap: 0.7rem; margin: 0.3rem 0.15rem 0.9rem; }
-.app-icon { display: grid; width: 2rem; height: 2rem; place-items: center; border-radius: 0.6rem; background: var(--mint); }
+.heading { display: flex; align-items: center; gap: 0.5rem; margin: 0.1rem 0.25rem 0.55rem; }
+.app-icon { display: grid; width: 1.55rem; height: 1.55rem; place-items: center; border-radius: 0.45rem; background: var(--mint); }
 .app-icon i, .paper-icon i { position: relative; width: 48%; height: 61%; border: 1.5px solid currentColor; border-radius: 2px; color: var(--ink); }
 .app-icon i::after, .paper-icon i::after { content: ""; position: absolute; top: 46%; left: 19%; width: 63%; height: 23%; border-block: 1px solid currentColor; }
 .scanner, .saved { border: 1px solid var(--line); border-radius: 1.1rem; background: var(--surface); overflow: hidden; }
-.overview { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; padding: 0.7rem 0.9rem 0.5rem; }
+.overview { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; padding: 0.45rem 0.75rem 0.35rem; }
 .page-count { display: flex; align-items: baseline; gap: 0.38rem; color: var(--muted); white-space: nowrap; }
-.page-count strong { color: var(--text); font-size: clamp(1.9rem, 8vw, 2.65rem); font-variant-numeric: tabular-nums; letter-spacing: -0.06em; line-height: 1; }
+.page-count strong { color: var(--text); font-size: 1.65rem; font-variant-numeric: tabular-nums; letter-spacing: -0.045em; line-height: 1; }
 .scan-state { display: grid; gap: 0.18rem; font-size: 0.875rem; text-align: right; }
 .scan-state b { color: var(--mint); }
 .scan-state span { color: var(--muted); font-variant-numeric: tabular-nums; }
-progress { display: block; width: calc(100% - 1.8rem); height: 0.26rem; margin: 0 0.9rem 0.65rem; border: 0; border-radius: 1rem; overflow: hidden; background: var(--line); color: var(--mint); appearance: none; }
+progress { display: block; width: calc(100% - 1.5rem); height: 0.22rem; margin: 0 0.75rem 0.45rem; border: 0; border-radius: 1rem; overflow: hidden; background: var(--line); color: var(--mint); appearance: none; }
 progress::-webkit-progress-bar { background: var(--line); }
 progress::-webkit-progress-value { background: var(--mint); }
 progress::-moz-progress-bar { background: var(--mint); }
 
-.viewfinder { position: relative; height: 42vh; height: clamp(11rem, 43svh, 24rem); isolation: isolate; overflow: hidden; background: #111a1c; }
+.viewfinder { position: relative; height: 68vh; height: clamp(14rem, 70svh, 44rem); isolation: isolate; overflow: hidden; background: #111a1c; }
 .viewfinder video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
 .empty-camera { position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: 0.45rem; padding: 1rem; text-align: center; }
 .empty-camera p { color: var(--muted); }
@@ -55,7 +55,9 @@ progress::-moz-progress-bar { background: var(--mint); }
 @keyframes captured { from { background: #abf0cd66; } to { background: transparent; } }
 @media (prefers-reduced-motion: reduce) { .viewfinder.shot::after { animation: none; } }
 
-.controls { display: grid; gap: 0.63rem; padding: 0.85rem 0.9rem; }
+.capture-action { display: grid; padding: 0.6rem 0.75rem; }
+.capture-action > button { min-height: 3rem; }
+.controls { display: grid; gap: 0.63rem; padding: 0.55rem 0.75rem 0.85rem; }
 .settings { display: grid; grid-template-columns: 1.4fr 1fr; gap: 0.65rem; }
 .settings label { display: grid; gap: 0.27rem; min-width: 0; color: var(--muted); font-size: 0.875rem; font-weight: 640; }
 select, input, button, .button { font: inherit; }
@@ -66,17 +68,18 @@ input[type="number"], select { padding: 0.45rem 0.7rem; width: 100%; font-size: 
 select { appearance: none; padding-right: 1.85rem; }
 button, .button { display: inline-flex; align-items: center; justify-content: center; padding: 0.5rem 0.8rem; font-weight: 660; text-decoration: none; text-align: center; cursor: pointer; }
 button.primary, .button.primary { background: var(--mint); border-color: var(--mint); color: var(--ink); }
-.controls > button { min-height: 3rem; }
 button:disabled { opacity: 0.5; cursor: default; }
 :focus-visible { outline: 3px solid var(--mint); outline-offset: 2px; }
 .capture-options { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.25rem 0.55rem; }
-.sound { display: flex; align-items: center; gap: 0.4rem; min-height: 2.5rem; color: var(--muted); font-size: 0.875rem; cursor: pointer; }
-.sound input { width: 1.05rem; height: 1.05rem; margin: 0; accent-color: var(--mint); }
+.capture-option { display: flex; align-items: center; gap: 0.4rem; min-height: 2.5rem; color: var(--muted); font-size: 0.875rem; cursor: pointer; }
+.capture-option input { width: 1.05rem; height: 1.05rem; margin: 0; accent-color: var(--mint); }
 .text-button { min-height: 2.5rem; background: transparent; border: 0; padding: 0 0.1rem; text-align: start; justify-self: start; color: var(--mint); font-size: 0.875rem; }
 .help { color: var(--muted); font-size: 0.875rem; line-height: 1.4; }
 .notice { padding: 0.65rem; border: 1px solid #815649; border-radius: 0.5rem; color: var(--alert); font-size: 0.9rem; line-height: 1.42; }
 
 .saved { display: grid; gap: 0.75rem; margin-top: 0.8rem; padding: 0.85rem 0.9rem 0.45rem; }
+.saved-heading { display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 0.3rem; }
+.saved-heading span { color: var(--muted); font-size: 0.875rem; font-variant-numeric: tabular-nums; }
 .saved-intro p, .dialog-inner p { margin-top: 0.3rem; line-height: 1.45; color: var(--muted); font-size: 0.9rem; }
 .file-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
 .file-actions > * { flex: 1 1 auto; }

@@ -1,5 +1,6 @@
 const pageAspect = 0.73;
-const longestEdge = 2200;
+const croppedEdgeLimit = 2200;
+const fullFrameEdgeLimit = 2600;
 const jpegQuality = 0.72;
 const wideZoom = 0.7;
 const ultraWideLabel = /ultra[\s-]*wide|\b0[.,][56]\s*[x×]/i;
@@ -51,7 +52,8 @@ export async function openPageCamera(mediaDevices, stillWanted) {
   return { feed: wider, lens };
 }
 
-export function pageCrop(width, height) {
+export function captureArea(width, height, fullFrame) {
+  if (fullFrame) return { x: 0, y: 0, width, height };
   const cropHeight = Math.floor(Math.min(width * 0.95 / pageAspect, height * 0.95));
   const cropWidth = Math.floor(cropHeight * pageAspect);
   return {
@@ -62,18 +64,14 @@ export function pageCrop(width, height) {
   };
 }
 
-export function followingDeadline(deadline, now, interval) {
-  // Preserve the cadence without catching up with a burst of duplicate frames.
-  return deadline + (Math.floor((now - deadline) / interval) + 1) * interval;
-}
-
-export function jpegFromCamera(video, canvas, context) {
-  const crop = pageCrop(video.videoWidth, video.videoHeight);
+export function jpegFromCamera(video, canvas, context, fullFrame) {
+  const crop = captureArea(video.videoWidth, video.videoHeight, fullFrame);
   if (!crop.width || !crop.height || video.readyState < 2) {
     throw new Error("The camera frame is unavailable. Turn the camera on again.");
   }
 
-  const scale = Math.min(1, longestEdge / crop.height);
+  const edgeLimit = fullFrame ? fullFrameEdgeLimit : croppedEdgeLimit;
+  const scale = Math.min(1, edgeLimit / Math.max(crop.width, crop.height));
   const width = Math.round(crop.width * scale);
   const height = Math.round(crop.height * scale);
   if (canvas.width !== width || canvas.height !== height) {

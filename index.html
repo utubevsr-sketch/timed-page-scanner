@@ -7,8 +7,8 @@
   <meta name="description" content="Scan pages hands-free and save small, numbered JPEGs in one ZIP.">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'none'; img-src 'self' blob:; media-src 'self' blob:; object-src 'none'; base-uri 'none'; form-action 'none'">
   <title>Timed Page Scanner</title>
-  <link rel="stylesheet" href="./scanner.css">
-  <script type="module" src="./scanner.js?v=2"></script>
+  <link rel="stylesheet" href="./scanner.css?v=3">
+  <script type="module" src="./scanner.js?v=3"></script>
 </head>
 <body>
   <main>
@@ -23,7 +23,6 @@
         <div class="scan-state">
           <b id="state" role="status">Loading scanner</b>
           <span id="lens" hidden></span>
-          <span id="size">0 KB stored</span>
         </div>
       </div>
       <progress id="progress" max="200" value="0" aria-label="Pages captured"></progress>
@@ -39,6 +38,10 @@
         <div class="countdown" id="countdown" aria-hidden="true" hidden></div>
       </div>
 
+      <div class="capture-action">
+        <button id="capture" class="primary" disabled>Enable camera</button>
+      </div>
+
       <div class="controls">
         <div class="settings">
           <label>
@@ -46,6 +49,9 @@
             <span class="select-wrap"><select id="interval">
               <option value="500">0.5 seconds</option>
               <option value="1000" selected>1 second</option>
+              <option value="1250">1.25 seconds</option>
+              <option value="1500">1.5 seconds</option>
+              <option value="1750">1.75 seconds</option>
               <option value="2000">2 seconds</option>
               <option value="3000">3 seconds</option>
               <option value="5000">5 seconds</option>
@@ -56,9 +62,9 @@
             <input id="goal" type="number" inputmode="numeric" required value="200" min="1" max="999" step="1">
           </label>
         </div>
-        <button id="capture" class="primary" disabled>Enable camera</button>
         <div class="capture-options">
-          <label class="sound"><input id="sound" type="checkbox" checked> Capture tick</label>
+          <label class="capture-option"><input id="full-frame" type="checkbox" checked> Full frame</label>
+          <label class="capture-option"><input id="sound" type="checkbox" checked> Capture tick</label>
           <button id="camera-stop" class="text-button" hidden>Turn camera off</button>
           <button id="cancel-retake" class="text-button" hidden>Cancel retake</button>
         </div>
@@ -69,7 +75,7 @@
 
     <section class="saved" aria-labelledby="saved-heading">
       <div class="saved-intro">
-        <h2 id="saved-heading">Saved photos</h2>
+        <div class="saved-heading"><h2 id="saved-heading">Saved photos</h2><span id="size">0 KB stored</span></div>
         <p>Small, numbered JPEGs stay in this browser until you export.</p>
       </div>
       <div class="file-actions">
