@@ -1,5 +1,5 @@
 import { appendPage, clearDraft, DraftChangedError, getDraft, getPage, openStorage, replacePage } from "./pages.js";
-import { followingDeadline, jpegFromCamera, pageCrop } from "./capture.js";
+import { followingDeadline, jpegFromCamera, openPageCamera, pageCrop } from "./capture.js?v=2";
 import { makeZip } from "./zip.js";
 
 const byId = (id) => document.getElementById(id);
@@ -24,6 +24,7 @@ let busy = "Loading scanner";
 let notice = "";
 let stream = null;
 let cameraReady = false;
+let cameraLens = "";
 let cameraRequest = 0;
 let run = null;
 let frameRequest = null;
@@ -59,6 +60,8 @@ function render() {
   byId("count").textContent = draft.count;
   byId("goal-label").textContent = validGoal ? ` / ${goal} pages` : " pages";
   byId("size").textContent = `${formatSize(draft.bytes)} stored`;
+  byId("lens").textContent = cameraLens;
+  byId("lens").hidden = !cameraReady;
   const progress = byId("progress");
   progress.max = validGoal ? goal : Math.max(1, draft.count);
   progress.value = draft.count;
@@ -126,6 +129,7 @@ function turnCameraOff(message = "") {
   const active = stream;
   stream = null;
   cameraReady = false;
+  cameraLens = "";
   camera.pause();
   camera.srcObject = null;
   active?.getTracks().forEach((track) => track.stop());
@@ -144,10 +148,7 @@ async function enableCamera() {
   notice = "";
   render();
   try {
-    const feed = await navigator.mediaDevices.getUserMedia({
-      audio: false,
-      video: { facingMode: { ideal: "environment" }, width: { ideal: 3840 }, height: { ideal: 2160 } },
-    });
+    const { feed, lens } = await openPageCamera(navigator.mediaDevices, () => requested === cameraRequest && !document.hidden);
     if (requested !== cameraRequest || document.hidden) {
       feed.getTracks().forEach((track) => track.stop());
       return;
@@ -165,6 +166,7 @@ async function enableCamera() {
       if (stream === feed && run) turnCameraOff("Camera paused. Enable it to continue.");
     });
     cameraReady = true;
+    cameraLens = lens;
     applyGuide();
   } catch (error) {
     if (requested !== cameraRequest) return;

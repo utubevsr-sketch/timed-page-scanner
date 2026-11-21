@@ -8,7 +8,7 @@
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'none'; img-src 'self' blob:; media-src 'self' blob:; object-src 'none'; base-uri 'none'; form-action 'none'">
   <title>Timed Page Scanner</title>
   <link rel="stylesheet" href="./scanner.css">
-  <script type="module" src="./scanner.js"></script>
+  <script type="module" src="./scanner.js?v=2"></script>
 </head>
 <body>
   <main>
@@ -22,6 +22,7 @@
         <div class="page-count"><strong id="count">0</strong><span id="goal-label"> / 200 pages</span></div>
         <div class="scan-state">
           <b id="state" role="status">Loading scanner</b>
+          <span id="lens" hidden></span>
           <span id="size">0 KB stored</span>
         </div>
       </div>
